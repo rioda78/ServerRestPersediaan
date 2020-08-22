@@ -13,9 +13,9 @@ Uses
   Vcl.Forms,
   Vcl.Dialogs,
   Winsock,
-  Winapi.Iphlpapi,
+
   Winapi.IpTypes,
-  USock,
+
   System.IniFiles,
   Vcl.AppEvnts,
   Vcl.StdCtrls,
@@ -27,16 +27,15 @@ Uses
   Vcl.Menus,
   URESTDWBase,
   Vcl.ComCtrls,
-  IdComponent,
-  IdBaseComponent,
-  IdTCPConnection,
-  IdTCPClient,
-  DBAccess, Uni, UniProvider, MySQLUniProvider,
-  MemDS, Data.DB,
+
+
+
+
+  DBAccess, Uni,
+  Data.DB,
   ServerUtils,
-  IdHTTP, uDWAbout,
-  uRESTDWDriverUNIDAC, PostgreSQLUniProvider,
-  InterBaseUniProvider, SQLServerUniProvider;
+  uDWAbout,
+  uRESTDWDriverUNIDAC;
 
 type
   TRestDWForm = class(TForm)
@@ -142,7 +141,7 @@ implementation
 {$ENDIF}
 
 Uses
-  Winapi.ShellApi, uDmService;
+  uDmService;
 
 Function ServerIpIndex(Items: TStrings; ChooseIP: string): Integer;
 var
