@@ -4,7 +4,7 @@ program ServiceData;
 uses
   Vcl.Forms,
   RestDWServerFormU in 'RestDWServerFormU.pas' {RestDWForm},
-  uDmService in 'uDmService.pas' {ServerBest: TDataModule},
+  uDmService in 'uDmService.pas' {ServerRest: TDataModule},
   Vcl.Themes,
   Vcl.Styles;
 

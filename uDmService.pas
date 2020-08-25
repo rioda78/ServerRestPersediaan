@@ -11,7 +11,7 @@ uses
   frxExportBaseDialog;
 
 type
-  TServerBest = class(TServerMethodDataModule)
+  TServerRest = class(TServerMethodDataModule)
     frxReport1: TfrxReport;
     frxPDFExport1: TfrxPDFExport;
     DWServerEvents1: TDWServerEvents;
@@ -37,7 +37,7 @@ type
   end;
 
 var
-  ServerBest: TServerBest;
+  ServerRest: TServerRest;
 
 implementation
 
@@ -45,7 +45,7 @@ implementation
 
 uses RestDWServerFormU;
 {$R *.dfm}
-function TServerBest.GerarPDF: TmemoryStream;
+function TServerRest.GerarPDF: TmemoryStream;
 begin
 
   result:= Tmemorystream.Create;
@@ -63,7 +63,7 @@ begin
 
 end;
 
-procedure TServerBest.KoneksiDbBeforeConnect(Sender: TObject);
+procedure TServerRest.KoneksiDbBeforeConnect(Sender: TObject);
 var
   Port_db: Integer;
   Servis_db: string;
@@ -80,11 +80,9 @@ begin
   Servis_db := RestDWForm.edServer.Text ;
 
   TUniConnection(Sender).LoginPrompt := FALSE;
-  {Microsoft Sql Server
-Mariadb
-Firebird SQL
-Postgre SQL
-  }
+  if LowerCase(provider_db) = 'postgresql' then
+    TUniConnection(Sender).SpecificOptions.Values['Schema'] := 'public' ;
+
   TUniConnection(Sender).ProviderName := provider_db;
   TUniConnection(Sender).Server := Servis_db;
   TUniConnection(Sender).Port := Port_db;
@@ -92,23 +90,9 @@ Postgre SQL
   TUniConnection(Sender).Username := User_db ;
   TUniConnection(Sender).Password := pass_db;
 
-   {
-  TFDConnection(Sender).Params.Clear;
-  TFDConnection(Sender).Params.Add('DriverID= Mysql');
-  TFDConnection(Sender).Params.Add('Server=' + Servis_db);
-  TFDConnection(Sender).Params.Add('Port=3306');
-  TFDConnection(Sender).Params.Add('Database=' + DataBase);
-  TFDConnection(Sender).Params.Add('User_Name=' + User_db);
-  TFDConnection(Sender).Params.Add('Password=' + pass_db);
-  TFDConnection(Sender).Params.Add('Protocol=TCPIP');
-  TFDConnection(Sender).DriverName := 'Mysql';
-  TFDConnection(Sender).LoginPrompt := FALSE;
-  TFDConnection(Sender).UpdateOptions.CountUpdatedRecords := False;
-  }
-
 end;
 
-function TServerBest.ConsultaBanco(var Params: TDWParams): string;
+function TServerRest.ConsultaBanco(var Params: TDWParams): string;
 var
   VSQL: string;
   JSONValue: TJSONValue;
@@ -140,7 +124,7 @@ begin
   end;
 end;
 
-function TServerBest.DownloadFile(var Params: TDWParams): string;
+function TServerRest.DownloadFile(var Params: TDWParams): string;
 var
 //JSONValue: TJSONValue;
   vFile: TMemoryStream;
@@ -165,17 +149,17 @@ begin
   end;
 end;
 
-procedure TServerBest.ServerMethodDataModuleCreate(Sender: TObject);
+procedure TServerRest.ServerMethodDataModuleCreate(Sender: TObject);
 begin
   RESTDWPoolerDB2.Active := RestDWForm.CbPoolerState.Checked;
 end;
 
-procedure TServerBest.ServerMethodDataModuleWelcomeMessage(Welcomemsg: string);
+procedure TServerRest.ServerMethodDataModuleWelcomeMessage(Welcomemsg: string);
 begin
   RestDWForm.edDatabase.Text := Welcomemsg;
 end;
 
-procedure TServerBest.Server_FDConnectionError(ASender, AInitiator: TObject; var AException: Exception);
+procedure TServerRest.Server_FDConnectionError(ASender, AInitiator: TObject; var AException: Exception);
 begin
   RestDWForm.memoResp.Lines.Add(AException.Message);
 end;

@@ -1,4 +1,4 @@
-object ServerBest: TServerBest
+object ServerRest: TServerRest
   OldCreateOrder = False
   OnCreate = ServerMethodDataModuleCreate
   Encoding = esUtf8
@@ -138,7 +138,6 @@ object ServerBest: TServerBest
     Events = <
       item
         Routes = [crAll]
-        NeedAuthorization = True
         DWParams = <
           item
             TypeObject = toParam
@@ -168,7 +167,7 @@ object ServerBest: TServerBest
     Top = 96
   end
   object KoneksiDb: TUniConnection
-    ProviderName = 'SQL Server'
+    ProviderName = 'PostgreSQL'
     LoginPrompt = False
     BeforeConnect = KoneksiDbBeforeConnect
     Left = 400

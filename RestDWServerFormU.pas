@@ -27,10 +27,6 @@ Uses
   Vcl.Menus,
   URESTDWBase,
   Vcl.ComCtrls,
-
-
-
-
   DBAccess, Uni,
   Data.DB,
   ServerUtils,
@@ -71,7 +67,6 @@ type
     Label19: TLabel;
     Label18: TLabel;
     CbEncode: TCheckBox;
-    RESTServicePooler1: TRESTServicePooler;
     CheckBox1: TCheckBox;
     Tupdatelogs: TTimer;
     edServer: TLabeledEdit;
@@ -84,6 +79,7 @@ type
     EdPortDb: TLabeledEdit;
     RESTDWServiceNotification1: TRESTDWServiceNotification;
     CbProvider: TComboBox;
+    RESTServicePooler1: TRESTServicePooler;
     procedure FormCreate(Sender: TObject);
     procedure ApplicationEvents1Idle(Sender: TObject; var Done: Boolean);
     procedure ButtonStartClick(Sender: TObject);
@@ -366,7 +362,7 @@ procedure TRestDWForm.FormCreate(Sender: TObject);
 Begin
   FCfgName                             := StringReplace(ExtractFileName(ParamStr(0)), '.exe', '', [RfReplaceAll]);
   FCfgName                             := ExtractFilePath(ParamSTR(0)) + 'Config_' + FCfgName + '.ini';
-  RESTServicePooler1.ServerMethodClass := TServerBest;
+  RESTServicePooler1.ServerMethodClass := TServerRest;
   PageControl1.ActivePage              := TsConfigs;
 End;
 
@@ -415,9 +411,11 @@ procedure TRestDWForm.StartServer;
 Begin
   If Not RESTServicePooler1.Active Then
   Begin
-    RESTServicePooler1.AuthenticationOptions.AuthorizationOption :=  rdwAOBasic ;
+   // RESTServicePooler1.AuthenticationOptions.AuthorizationOption :=  rdwAOBasic ;
 
    // RESTServicePooler1.AuthenticationOptions.OptionParams := EdPassDw.Text;
+   RESTServicePooler1.ServerParams.UserName := EdUserDw.Text;
+    RESTServicePooler1.ServerParams.Password := EdPassDw.Text;
     RESTServicePooler1.ServicePort           := StrToInt(EdPortDW.Text);
     RESTServicePooler1.SSLPrivateKeyFile     := EPrivKeyFile.Text;
     RESTServicePooler1.SSLPrivateKeyPassword := EPrivKeyPass.Text;

@@ -153,7 +153,7 @@
             <Form>RestDWForm</Form>
         </DCCReference>
         <DCCReference Include="uDmService.pas">
-            <Form>ServerBest</Form>
+            <Form>ServerRest</Form>
             <FormType>dfm</FormType>
             <DesignClass>TDataModule</DesignClass>
         </DCCReference>

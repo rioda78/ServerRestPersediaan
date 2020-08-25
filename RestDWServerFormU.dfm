@@ -118,6 +118,10 @@ object RestDWForm: TRestDWForm
     TabOrder = 3
     object tsConfigs: TTabSheet
       Caption = 'Configuration'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         512
         377)
@@ -454,6 +458,18 @@ object RestDWForm: TRestDWForm
       OnClick = SairdaAplicao1Click
     end
   end
+  object tupdatelogs: TTimer
+    Enabled = False
+    OnTimer = tupdatelogsTimer
+    Left = 236
+    Top = 16
+  end
+  object RESTDWServiceNotification1: TRESTDWServiceNotification
+    GarbageTime = 60000
+    QueueNotifications = 50
+    Left = 352
+    Top = 240
+  end
   object RESTServicePooler1: TRESTServicePooler
     Active = False
     CORS = False
@@ -468,9 +484,13 @@ object RestDWForm: TRestDWForm
     RequestTimeout = -1
     ServicePort = 8082
     ProxyOptions.Port = 8888
-    AuthenticationOptions.AuthorizationOption = rdwAOBasic
-    AuthenticationOptions.OptionParams.Username = 'Bangsat123??'
-    AuthenticationOptions.OptionParams.Password = 'Master9'
+    TokenOptions.Active = False
+    TokenOptions.ServerRequest = 'RESTDWServer01'
+    TokenOptions.TokenHash = 'RDWTS_HASH'
+    TokenOptions.LifeCycle = 30
+    ServerParams.HasAuthentication = True
+    ServerParams.UserName = 'testserver'
+    ServerParams.Password = 'testserver'
     SSLMethod = sslvSSLv3
     SSLVersions = [sslvSSLv2, sslvSSLv23, sslvSSLv3]
     OnLastRequest = RESTServicePooler1LastRequest
@@ -481,23 +501,10 @@ object RestDWForm: TRestDWForm
     SSLVerifyMode = [sslvrfPeer]
     SSLVerifyDepth = 0
     ForceWelcomeAccess = False
-    RESTServiceNotification = RESTDWServiceNotification1
     CriptOptions.Use = False
     CriptOptions.Key = 'RDWBASEKEY256'
     MultiCORE = False
-    Left = 316
-    Top = 16
-  end
-  object tupdatelogs: TTimer
-    Enabled = False
-    OnTimer = tupdatelogsTimer
-    Left = 236
-    Top = 16
-  end
-  object RESTDWServiceNotification1: TRESTDWServiceNotification
-    GarbageTime = 60000
-    QueueNotifications = 50
-    Left = 352
-    Top = 240
+    Left = 140
+    Top = 160
   end
 end
