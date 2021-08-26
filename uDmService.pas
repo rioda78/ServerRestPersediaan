@@ -4,30 +4,34 @@ interface
 
 uses
   SysUtils, Classes, SysTypes, UDWDatamodule, System.JSON, UDWJSONObject,
-  Dialogs, UDWConsts,   frxClass, frxExportPDF,
-  uRESTDWServerEvents,  DBAccess, Uni, MySQLUniProvider,
-  uRESTDWDriverUNIDAC, Data.DB, uRESTDWPoolerDB, PostgreSQLUniProvider,
-  InterBaseUniProvider, SQLServerUniProvider, MemDS, UniProvider, uDWAbout,
-  frxExportBaseDialog;
+  Dialogs, ServerUtils, UDWConsts, FireDAC.Dapt, UDWConstsData,
+  FireDAC.UI.Intf, FireDAC.VCLUI.Wait, FireDAC.Stan.Intf, FireDAC.Stan.Option,
+  FireDAC.Stan.Error, FireDAC.Phys.Intf, FireDAC.Stan.Def, FireDAC.Stan.Pool,
+  FireDAC.Stan.Async, FireDAC.Phys,Data.DB, FireDAC.Comp.Client,
+  FireDAC.Comp.UI, FireDAC.Phys.IBBase, FireDAC.Stan.StorageJSON,
+  RestDWServerFormU, URESTDWPoolerDB, URestDWDriverFD, FireDAC.Phys.MSSQLDef,
+  FireDAC.Phys.ODBCBase, FireDAC.Phys.MSSQL, frxClass, frxExportPDF, uDWAbout,
+  uRESTDWServerEvents, frxExportBaseDialog, FireDAC.Phys.FB, FireDAC.Phys.FBDef,
+  FireDAC.Phys.MySQLDef, FireDAC.Phys.PGDef, FireDAC.Phys.PG, FireDAC.Phys.MySQL;
 
 type
-  TServerRest = class(TServerMethodDataModule)
+  TServerMethodDM = class(TServerMethodDataModule)
+    RESTDWPoolerDB1: TRESTDWPoolerDB;
+    RESTDWDriverFD1: TRESTDWDriverFD;
+    Server_FDConnection: TFDConnection;
+    FDStanStorageJSONLink1: TFDStanStorageJSONLink;
+    FDGUIxWaitCursor1: TFDGUIxWaitCursor;
+    FDPhysMSSQLDriverLink1: TFDPhysMSSQLDriverLink;
     frxReport1: TfrxReport;
     frxPDFExport1: TfrxPDFExport;
     DWServerEvents1: TDWServerEvents;
-    RESTDWPoolerDB2: TRESTDWPoolerDB;
-    KoneksiDb: TUniConnection;
-    RESTDWDriverUNIDAC1: TRESTDWDriverUNIDAC;
-    InterBaseUniProvider1: TInterBaseUniProvider;
-    PostgreSQLUniProvider1: TPostgreSQLUniProvider;
-    MySQLUniProvider1: TMySQLUniProvider;
-    UniQuery1: TUniQuery;
-    SQLServerUniProvider1: TSQLServerUniProvider;
+    FDPhysMySQLDriverLink1: TFDPhysMySQLDriverLink;
+    FDPhysPgDriverLink1: TFDPhysPgDriverLink;
     procedure ServerMethodDataModuleCreate(Sender: TObject);
+    procedure Server_FDConnectionBeforeConnect(Sender: TObject);
     procedure ServerMethodDataModuleWelcomeMessage(Welcomemsg: string);
     procedure Server_FDConnectionError(ASender, AInitiator: TObject; var AException: Exception);
     function DownloadFile(var Params: TDWParams): string; overload;
-    procedure KoneksiDbBeforeConnect(Sender: TObject);
   private
     { Private declarations }
     function ConsultaBanco(var Params: TDWParams): string; overload;
@@ -37,15 +41,13 @@ type
   end;
 
 var
-  ServerRest: TServerRest;
+  ServerMethodDM: TServerMethodDM;
 
 implementation
 
 {%CLASSGROUP 'Vcl.Controls.TControl'}
-
-uses RestDWServerFormU;
 {$R *.dfm}
-function TServerRest.GerarPDF: TmemoryStream;
+function TServerMethodDM.GerarPDF: TmemoryStream;
 begin
 
   result:= Tmemorystream.Create;
@@ -63,40 +65,11 @@ begin
 
 end;
 
-procedure TServerRest.KoneksiDbBeforeConnect(Sender: TObject);
-var
-  Port_db: Integer;
-  Servis_db: string;
-  DataBase: string;
-  User_db: string;
-  pass_db: string;
-  provider_db : string ;
-begin
-  DataBase := RestDWForm.edDatabase.Text;
-  provider_db := restdwform.ProviderDb ;
-  Port_db:= StrToInt(RestDWForm.EdPortDb.Text);
-  User_db := RestDWForm.edUsernameDb.Text;
-  pass_db := RestDWForm.EdPasswordDb.Text;
-  Servis_db := RestDWForm.edServer.Text ;
-
-  TUniConnection(Sender).LoginPrompt := FALSE;
-  if LowerCase(provider_db) = 'postgresql' then
-    TUniConnection(Sender).SpecificOptions.Values['Schema'] := 'public' ;
-
-  TUniConnection(Sender).ProviderName := provider_db;
-  TUniConnection(Sender).Server := Servis_db;
-  TUniConnection(Sender).Port := Port_db;
-  TUniConnection(Sender).Database := DataBase;
-  TUniConnection(Sender).Username := User_db ;
-  TUniConnection(Sender).Password := pass_db;
-
-end;
-
-function TServerRest.ConsultaBanco(var Params: TDWParams): string;
+function TServerMethodDM.ConsultaBanco(var Params: TDWParams): string;
 var
   VSQL: string;
   JSONValue: TJSONValue;
-  FdQuery: TuniQuery;
+  FdQuery: TFDQuery;
 begin
   if Params.ItemsString['SQL'] <> NIL then
   begin
@@ -109,9 +82,9 @@ begin
       VSQL := Params.ItemsString['SQL'].Value;
       {$IFDEF FPC}
       {$ELSE}
-      FdQuery := TuniQuery.Create(NIL);
+      FdQuery := TFDQuery.Create(NIL);
       try
-        FdQuery.Connection := koneksidb;
+        FdQuery.Connection := Server_FDConnection;
         FdQuery.SQL.Add(VSQL);
         JSONValue.LoadFromDataset('sql', FdQuery, RestDWForm.CbEncode.Checked);
         Result := JSONValue.ToJSON;
@@ -124,7 +97,7 @@ begin
   end;
 end;
 
-function TServerRest.DownloadFile(var Params: TDWParams): string;
+function TServerMethodDM.DownloadFile(var Params: TDWParams): string;
 var
 //JSONValue: TJSONValue;
   vFile: TMemoryStream;
@@ -132,6 +105,9 @@ var
 begin
   if (Params.ItemsString['Relatorio'] <> Nil) then
   begin
+ // JSONValue := TJSONValue.Create;
+//  JSONValue.Encoding := Params.Encoding;
+//  JSONValue.ObjectValue := ovBlob;
       try
           //vFile := TMemoryStream.Create;
           try
@@ -149,17 +125,52 @@ begin
   end;
 end;
 
-procedure TServerRest.ServerMethodDataModuleCreate(Sender: TObject);
+procedure TServerMethodDM.ServerMethodDataModuleCreate(Sender: TObject);
 begin
-  RESTDWPoolerDB2.Active := RestDWForm.CbPoolerState.Checked;
+  RESTDWPoolerDB1.Active := RestDWForm.CbPoolerState.Checked;
 end;
 
-procedure TServerRest.ServerMethodDataModuleWelcomeMessage(Welcomemsg: string);
+procedure TServerMethodDM.ServerMethodDataModuleWelcomeMessage(Welcomemsg: string);
 begin
-  RestDWForm.edDatabase.Text := Welcomemsg;
+  RestDWForm.EdDatabase.Text := Welcomemsg;
 end;
 
-procedure TServerRest.Server_FDConnectionError(ASender, AInitiator: TObject; var AException: Exception);
+procedure TServerMethodDM.Server_FDConnectionBeforeConnect(Sender: TObject);
+var
+  Driver_Db: string;
+  Port_Db: string;
+  Servis_Db: string;
+  DataBase: string;
+  User_Db: string;
+  Pass_Db: string;
+begin
+  DataBase := RestDWForm.EdDatabase.Text;
+
+  Driver_Db := RestDWForm.CbDriver.Text;
+
+  Servis_Db := RestDwForm.EdServerDb.Text ;
+
+
+  DataBase := RestDWForm.Eddatabase.Text;
+
+  Port_Db := RestDWForm.EdPortDb.Text;
+  User_Db := RestDWForm.EdUserNameDb.Text;
+  Pass_Db := RestDWForm.EdPasswordDb.Text;
+
+  TFDConnection(Sender).Params.Clear;
+  TFDConnection(Sender).Params.Add('DriverID=' + Driver_Db);
+  TFDConnection(Sender).Params.Add('Server=' + Servis_Db);
+  TFDConnection(Sender).Params.Add('Port=' + Port_Db);
+  TFDConnection(Sender).Params.Add('Database=' + DataBase);
+  TFDConnection(Sender).Params.Add('User_Name=' + User_Db);
+  TFDConnection(Sender).Params.Add('Password=' + Pass_Db);
+  TFDConnection(Sender).Params.Add('Protocol=TCPIP');
+  TFDConnection(Sender).DriverName := Driver_db;
+  TFDConnection(Sender).LoginPrompt := FALSE;
+  TFDConnection(Sender).UpdateOptions.CountUpdatedRecords := False;
+end;
+
+procedure TServerMethodDM.Server_FDConnectionError(ASender, AInitiator: TObject; var AException: Exception);
 begin
   RestDWForm.memoResp.Lines.Add(AException.Message);
 end;

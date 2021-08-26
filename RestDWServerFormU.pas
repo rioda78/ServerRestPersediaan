@@ -12,10 +12,11 @@ Uses
   Vcl.Controls,
   Vcl.Forms,
   Vcl.Dialogs,
+  ServerUtils,
   Winsock,
-
+  Winapi.Iphlpapi,
   Winapi.IpTypes,
-
+  USock,
   System.IniFiles,
   Vcl.AppEvnts,
   Vcl.StdCtrls,
@@ -27,11 +28,28 @@ Uses
   Vcl.Menus,
   URESTDWBase,
   Vcl.ComCtrls,
-  DBAccess, Uni,
+  FireDAC.Phys.FBDef,
+  FireDAC.UI.Intf,
+  FireDAC.VCLUI.Wait,
+  FireDAC.Stan.Intf,
+  FireDAC.Stan.Option,
+  FireDAC.Stan.Error,
+  FireDAC.Phys.Intf,
+  FireDAC.Stan.Def,
+  FireDAC.Stan.Pool,
+  FireDAC.Stan.Async,
+  FireDAC.Phys,
+  FireDAC.Phys.FB,
   Data.DB,
-  ServerUtils,
-  uDWAbout,
-  uRESTDWDriverUNIDAC;
+  FireDAC.Comp.Client,
+  FireDAC.Comp.UI,
+  FireDAC.Phys.IBBase,
+  FireDAC.Stan.StorageJSON,
+  IdComponent,
+  IdBaseComponent,
+  IdTCPConnection,
+  IdTCPClient,
+  IdHTTP, uDWAbout;
 
 type
   TRestDWForm = class(TForm)
@@ -44,15 +62,23 @@ type
     PageControl1: TPageControl;
     TsConfigs: TTabSheet;
     TsLogs: TTabSheet;
+    Label1: TLabel;
+    Label2: TLabel;
+    Label3: TLabel;
     Label7: TLabel;
     Label13: TLabel;
     Bevel1: TBevel;
     Bevel2: TBevel;
+    Label6: TLabel;
+    Image1: TImage;
     Bevel4: TBevel;
     Label4: TLabel;
     Label15: TLabel;
     Label16: TLabel;
     Label17: TLabel;
+    EdPortaDW: TEdit;
+    EdUserNameDW: TEdit;
+    EdPasswordDW: TEdit;
     EPrivKeyFile: TEdit;
     ECertFile: TEdit;
     EPrivKeyPass: TMaskEdit;
@@ -67,19 +93,16 @@ type
     Label19: TLabel;
     Label18: TLabel;
     CbEncode: TCheckBox;
+    RESTServicePooler1: TRESTServicePooler;
     CheckBox1: TCheckBox;
     Tupdatelogs: TTimer;
-    edServer: TLabeledEdit;
-    edDatabase: TLabeledEdit;
-    edUsernameDb: TLabeledEdit;
+    CbDriver: TComboBox;
+    Label20: TLabel;
+    EdServerDb: TLabeledEdit;
+    EdUsernameDb: TLabeledEdit;
     EdPasswordDb: TLabeledEdit;
-    EdPortDw: TLabeledEdit;
-    EdUserDw: TLabeledEdit;
-    EdPassDw: TLabeledEdit;
+    EdDatabase: TLabeledEdit;
     EdPortDb: TLabeledEdit;
-    RESTDWServiceNotification1: TRESTDWServiceNotification;
-    CbProvider: TComboBox;
-    RESTServicePooler1: TRESTServicePooler;
     procedure FormCreate(Sender: TObject);
     procedure ApplicationEvents1Idle(Sender: TObject; var Done: Boolean);
     procedure ButtonStartClick(Sender: TObject);
@@ -92,25 +115,19 @@ type
     procedure RESTServicePooler1LastRequest(Value: string);
     procedure RESTServicePooler1LastResponse(Value: string);
     procedure TupdatelogsTimer(Sender: TObject);
-    procedure CbProviderChange(Sender: TObject);
   Private
     { Private declarations }
     VLastRequest, VLastRequestB, VDatabaseName, FCfgName, VDatabaseIP, VUsername, VPassword: string;
-    FRdms: string;
-    FProviderDb: string;
     procedure StartServer;
     Function GetHandleOnTaskBar: THandle;
     procedure ChangeStatusWindow;
     procedure HideApplication;
-    procedure setRdms(const Value: string);
-  protected
-    procedure WriteState(Writer: TWriter); override;
+    procedure BacaSetting;
+    procedure TulisSetting;
   Public
     { Public declarations }
     procedure ShowBalloonTips(IconMessage: Integer = 0; MessageValue: string = '');
     procedure ShowApplication;
-    property Rdms: string read FRdms write setRdms;
-    property ProviderDb: string read FProviderDb write FProviderDb;
     Property Username: string
       Read   VUsername
       Write  VUsername;
@@ -137,7 +154,8 @@ implementation
 {$ENDIF}
 
 Uses
-  uDmService;
+  Winapi.ShellApi,
+  UDmService;
 
 Function ServerIpIndex(Items: TStrings; ChooseIP: string): Integer;
 var
@@ -164,17 +182,12 @@ Begin
     Result := Application.Handle;
 End;
 
-procedure TRestDWForm.CbProviderChange(Sender: TObject);
-begin
-providerdb := cbprovider.Items[cbprovider.ItemIndex];
-end;
-
 procedure TRestDWForm.ChangeStatusWindow;
 Begin
   If Self.Visible Then
     SairdaAplicao1.Caption := 'Minimalkan'
   Else
-    SairdaAplicao1.Caption := 'Tutup Aplikasi';
+    SairdaAplicao1.Caption := 'Keluar dari App';
   Application.ProcessMessages;
 End;
 
@@ -193,6 +206,45 @@ Begin
   ShowWindow(GetHandleOnTaskBar, SW_HIDE);
   ChangeStatusWindow;
 End;
+
+procedure TRestDWForm.BacaSetting;
+var
+ini : TInifile ;
+driver : String ;
+begin
+
+  Ini                     := TIniFile.Create(FCfgName);
+  Try
+   EdServerdb.Text     := Ini.ReadString('SettingDb', 'Server', '127.0.0.1');
+   EdDatabase.Text      := Ini.ReadString('SettingDb', 'Database', 'EMPLOYEE.FDB');
+   EdPortDb.Text          := Ini.ReadString('SettingDb', 'PortDb', '3050');
+   EdUserNameDb.Text       := Ini.ReadString('SettingDb', 'UserDb', 'SYSDBA');
+   EdPasswordDb.Text       := Ini.ReadString('SettingDb', 'PassDb', 'masterkey');
+   driver := uppercase(ini.ReadString('SettingDb', 'Driver', 'MSSQL'));
+   EdPortaDW.Text          := Ini.ReadString('SettingDb', 'PortDW', '8082');
+   EdUserNameDW.Text       := Ini.ReadString('SettingDb', 'UserDW', 'testserver');
+   EdPasswordDW.Text       := Ini.ReadString('SettingDb', 'PassDW', 'testserver');
+
+   if driver = 'MSSQL' then
+   begin
+     cbdriver.ItemIndex := 0 ;
+   end
+   else if driver = 'MYSQL' then
+   BEGIN
+     cbdriver.ItemIndex := 1 ;
+   END
+   else
+   begin
+     cbdriver.ItemIndex := 2 ;
+   end;
+  //
+  EPrivKeyFile.Text := Ini.ReadString('SSL', 'PKF', '');
+  EPrivKeyPass.Text := Ini.ReadString('SSL', 'PKP', '');
+  ECertFile.Text    := Ini.ReadString('SSL', 'CF', '');
+  Finally
+   Ini.Free;
+  End;
+end;
 
 procedure TRestDWForm.RestaurarAplicao1Click(Sender: TObject);
 Begin
@@ -213,11 +265,6 @@ procedure TRestDWForm.SairdaAplicao1Click(Sender: TObject);
 Begin
   Close;
 End;
-
-procedure TRestDWForm.setRdms(const Value: string);
-begin
-  FRdms := Value;
-end;
 
 procedure TRestDWForm.ShowApplication;
 Begin
@@ -254,12 +301,13 @@ procedure TRestDWForm.ApplicationEvents1Idle(Sender: TObject; var Done: Boolean)
 Begin
   ButtonStart.Enabled   := Not RESTServicePooler1.Active;
   ButtonStop.Enabled    := RESTServicePooler1.Active;
-  EdPortDW.Enabled     := ButtonStart.Enabled;
-  EdUserDw.Enabled  := ButtonStart.Enabled;
-  EdPassDw.Enabled  := ButtonStart.Enabled;
+  EdPortaDW.Enabled     := ButtonStart.Enabled;
+  EdUserNameDW.Enabled  := ButtonStart.Enabled;
+  EdPasswordDW.Enabled  := ButtonStart.Enabled;
   EdPortDb.Enabled     := ButtonStart.Enabled;
-  edDatabase.Enabled          := ButtonStart.Enabled;
-  edUsernameDb.Enabled  := ButtonStart.Enabled;
+  EdServerDb.Enabled       := ButtonStart.Enabled;
+  EdDatabase.Enabled      := ButtonStart.Enabled;
+  EdUserNameDb.Enabled  := ButtonStart.Enabled;
   EdPasswordDb.Enabled  := ButtonStart.Enabled;
   EPrivKeyFile.Enabled  := ButtonStart.Enabled;
   EPrivKeyPass.Enabled  := ButtonStart.Enabled;
@@ -267,74 +315,13 @@ Begin
 End;
 
 procedure TRestDWForm.ButtonStartClick(Sender: TObject);
-var
-  Ini: TIniFile;
-  fdkon : TUniConnection ;
 Begin
 
-  fdkon := TuniConnection.Create(nil);
-  try
 
-    fdkon.ProviderName := providerdb ;
-    fdkon.Server :=  edServer.Text;
-    fdkon.Port :=  StrToInt(EdPortDb.Text);
-    fdkon.Database :=  edDatabase.Text;
-    fdkon.Username :=  edUsernameDb.Text ;
-    fdkon.Password := EdPasswordDb.Text ;
-
-    {
-    fdkon.Params.Clear;
-    fdkon.Params.Add('DriverID= Mysql');
-    fdkon.Params.Add('Server=' + edServer.Text);
-    fdkon.Params.Add('Port=3306');
-    fdkon.Params.Add('Database=' + edDatabase.Text);
-    fdkon.Params.Add('User_Name=' + edUsernameDb.Text);
-    fdkon.Params.Add('Password=' + EdPasswordDb.Text);
-    fdkon.Params.Add('Protocol=TCPIP');
-    fdkon.DriverName := 'Mysql';
-    }
-    fdkon.LoginPrompt := FALSE;
-   // TFDConnection(Sender).Params.Add('Protocol=TCPIP');
-    try
-     fdkon.Connected := True ;
-     if fdkon.Connected = True then
-      begin
-       If FileExists(FCfgName) Then
-        DeleteFile(FCfgName);
-      Ini := TIniFile.Create(FCfgName);
-      Ini.WriteString('Konfigurasi', 'Server', edServer.Text);
-      ini.WriteString('Konfigurasi', 'Provider', providerdb);
-      Ini.WriteString('Konfigurasi', 'database', edDatabase.Text);
-      Ini.WriteString('Konfigurasi', 'PortDB', EdPortDb.Text);
-
-      Ini.WriteString('Konfigurasi', 'UserDb', edUsernameDb.Text);
-      Ini.WriteString('Konfigurasi', 'PassDb', EdPasswordDb.Text);
-
-      Ini.WriteString('Konfigurasi', 'PortDW', EdPortDw.Text);
-      Ini.WriteString('Konfigurasi', 'UserDw', EdUserDw.Text);
-      Ini.WriteString('Konfigurasi', 'PassDw', EdPassDw.Text);
-
-      Ini.WriteString('SSL', 'PKF', EPrivKeyFile.Text);
-      Ini.WriteString('SSL', 'PKP', EPrivKeyPass.Text);
-      Ini.WriteString('SSL', 'CF', ECertFile.Text);
-      Ini.Free;
-
-        VUsername := EdUserDw.Text;
-        VPassword := EdPassDw.Text;
-
-        StartServer;
-
-    end;
-    except on e:exception do
-    begin
-       raise Exception.Create('Error Message '+ e.Message);
-    end;
-
-    end;
-
-  finally
-   FreeAndNil(fdkon);
-  end;
+  TulisSetting ;
+  VUsername := EdUserNameDW.Text;
+  VPassword := EdPasswordDW.Text;
+  StartServer;
 End;
 
 procedure TRestDWForm.ButtonStopClick(Sender: TObject);
@@ -352,7 +339,7 @@ Begin
   Begin
     CanClose := Not Self.Visible;
     If CanClose Then
-      CanClose := Application.MessageBox('Apakah yakin akan menutup?', 'Informasi ?', Mb_IconQuestion + Mb_YesNo) = MrYes
+      CanClose := Application.MessageBox('Apakah anda ingin keluar ?', 'Pertanyaan ?', Mb_IconQuestion + Mb_YesNo) = MrYes
     Else
       HideApplication;
   End;
@@ -360,70 +347,36 @@ End;
 
 procedure TRestDWForm.FormCreate(Sender: TObject);
 Begin
+  // define o nome do .ini de acordo c o EXE
+  // dessa forma se quiser testar várias instâncias do servidor em
+  // portas diferentes os arquivos não irão conflitar
   FCfgName                             := StringReplace(ExtractFileName(ParamStr(0)), '.exe', '', [RfReplaceAll]);
   FCfgName                             := ExtractFilePath(ParamSTR(0)) + 'Config_' + FCfgName + '.ini';
-  RESTServicePooler1.ServerMethodClass := TServerRest;
+  RESTServicePooler1.ServerMethodClass := TServerMethodDM;
   PageControl1.ActivePage              := TsConfigs;
 End;
 
 procedure TRestDWForm.FormShow(Sender: TObject);
-var
-  Ini:               TIniFile;
 Begin
-
-  Ini                     := TIniFile.Create(FCfgName);
-  providerdb := Ini.ReadString('Konfigurasi', 'Provider', 'sql server');
-
-  if lowercase(providerdb) = 'sql server' then
-  begin
-    cbprovider.ItemIndex := 0 ;
-  end
-  else if lowercase(providerdb) = 'mysql' then
-  begin
-     cbprovider.ItemIndex := 1 ;
-  end
-  else if lowercase(providerdb) = 'interbase' then
-  begin
-     cbprovider.ItemIndex := 2 ;
-  end
-  else if lowercase(providerdb) = 'postgresql' then
-  begin
-     cbprovider.ItemIndex := 3 ;
-  end
-  else
-    cbprovider.ItemIndex := 0 ;
-
-  edServer.Text           := Ini.ReadString('Konfigurasi', 'Server', '127.0.0.1');
-  edDatabase.Text               := Ini.ReadString('Konfigurasi', 'Database', 'EMPLOYEE.FDB');
-  EdPortDb.Text          := Ini.ReadString('Konfigurasi', 'PortDB', '3050');
-  EdPortDW.Text          := Ini.ReadString('Konfigurasi', 'PortDW', '8082');
-  edUsernameDb.Text       := Ini.ReadString('Konfigurasi', 'UserDb', 'SYSDBA');
-  EdPasswordDb.Text       := Ini.ReadString('Konfigurasi', 'PassDb', 'masterkey');
-  EdUserDw.Text       := Ini.ReadString('Konfigurasi', 'UserDw', 'testserver');
-  EdPassDw.Text     := Ini.ReadString('Konfigurasi', 'PassDw', 'testserver');
-  EPrivKeyFile.Text := Ini.ReadString('SSL', 'PKF', '');
-  EPrivKeyPass.Text := Ini.ReadString('SSL', 'PKP', '');
-  ECertFile.Text    := Ini.ReadString('SSL', 'CF', '');
-  Ini.Free;
+  BacaSetting ;
 End;
 
 procedure TRestDWForm.StartServer;
 Begin
   If Not RESTServicePooler1.Active Then
   Begin
-   // RESTServicePooler1.AuthenticationOptions.AuthorizationOption :=  rdwAOBasic ;
-
-   // RESTServicePooler1.AuthenticationOptions.OptionParams := EdPassDw.Text;
-   RESTServicePooler1.ServerParams.UserName := EdUserDw.Text;
-    RESTServicePooler1.ServerParams.Password := EdPassDw.Text;
-    RESTServicePooler1.ServicePort           := StrToInt(EdPortDW.Text);
+    //RestServicePooler1.AuthenticationOptions.AuthorizationOption :=
+   // RESTServicePooler1.ServerParams.UserName := EdUserNameDW.Text;
+   // RESTServicePooler1.ServerParams.Password := EdPasswordDW.Text;
+    TRDWAuthOptionBasic(RESTServicePooler1.AuthenticationOptions.OptionParams).Username := EdUserNameDW.Text;
+     TRDWAuthOptionBasic(RESTServicePooler1.AuthenticationOptions.OptionParams).Password := EdPasswordDW.Text;
+    RESTServicePooler1.ServicePort           := StrToInt(EdPortaDW.Text);
     RESTServicePooler1.SSLPrivateKeyFile     := EPrivKeyFile.Text;
     RESTServicePooler1.SSLPrivateKeyPassword := EPrivKeyPass.Text;
     RESTServicePooler1.SSLCertFile           := ECertFile.Text;
     RESTServicePooler1.Active                := True;
     If Not RESTServicePooler1.Active Then
       Exit;
-
     PageControl1.ActivePage := TsLogs;
     HideApplication;
     Tupdatelogs.Enabled := True;
@@ -439,6 +392,34 @@ Begin
     LSeguro.Caption    := 'Aman : Tidak';
   End;
 End;
+
+procedure TRestDWForm.TulisSetting;
+var
+ini : TInifile ;
+begin
+  If FileExists(FCfgName) Then
+    DeleteFile(FCfgName);
+  Ini := TIniFile.Create(FCfgName);
+  try
+  Ini.WriteString('SettingDb', 'DRIVER', cbDriver.Text);
+  ini.WriteString('SettingDb', 'Server', edserverdb.Text);
+  Ini.WriteString('SettingDb', 'Database', EdDatabase.Text);
+  Ini.WriteString('SettingDb', 'PortDB', EdPortDb.Text);
+  Ini.WriteString('SettingDb', 'PortDW', EdPortaDW.Text);
+  Ini.WriteString('SettingDb', 'UserDb', EdUserNameDb.Text);
+  Ini.WriteString('SettingDb', 'PassDb', EdPasswordDb.Text);
+  //RestDW
+  Ini.WriteString('SettingDb', 'UserDW', EdUserNameDW.Text);
+  Ini.WriteString('SettingDb', 'PassDW', EdPasswordDW.Text);
+  //SSL
+  Ini.WriteString('SSL', 'PKF', EPrivKeyFile.Text);
+  Ini.WriteString('SSL', 'PKP', EPrivKeyPass.Text);
+  Ini.WriteString('SSL', 'CF', ECertFile.Text);
+  finally
+      Ini.Free;
+  end;
+
+end;
 
 procedure TRestDWForm.TupdatelogsTimer(Sender: TObject);
 var
@@ -473,12 +454,5 @@ Begin
     Tupdatelogs.Enabled := True;
   End;
 End;
-
-
-procedure TRestDWForm.WriteState(Writer: TWriter);
-begin
-  inherited;
-
-end;
 
 End.

@@ -1,19 +1,16 @@
-program ServiceData;
+program RestDWServerProject;
 {$APPTYPE GUI}
 
 uses
   Vcl.Forms,
   RestDWServerFormU in 'RestDWServerFormU.pas' {RestDWForm},
-  uDmService in 'uDmService.pas' {ServerRest: TDataModule},
-  Vcl.Themes,
-  Vcl.Styles;
+  uDmService in 'uDmService.pas' {DataModule1: TDataModule};
 
 {$R *.res}
 
 begin
   reportmemoryleaksonshutdown:=true;
   Application.Initialize;
-  TStyleManager.TrySetStyle('Aqua Light Slate');
   Application.CreateForm(TRestDWForm, RestDWForm);
   Application.Run;
 end.

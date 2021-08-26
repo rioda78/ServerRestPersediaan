@@ -1,11 +1,56 @@
-object ServerRest: TServerRest
+object ServerMethodDM: TServerMethodDM
   OldCreateOrder = False
   OnCreate = ServerMethodDataModuleCreate
   Encoding = esUtf8
-  Height = 325
-  Width = 553
+  Height = 338
+  Width = 466
+  object RESTDWPoolerDB1: TRESTDWPoolerDB
+    RESTDriver = RESTDWDriverFD1
+    Compression = True
+    Encoding = esUtf8
+    StrsTrim = False
+    StrsEmpty2Null = False
+    StrsTrim2Len = True
+    Active = True
+    PoolerOffMessage = 'RESTPooler not active.'
+    ParamCreate = True
+    Left = 72
+    Top = 128
+  end
+  object RESTDWDriverFD1: TRESTDWDriverFD
+    CommitRecords = 100
+    Connection = Server_FDConnection
+    Left = 96
+    Top = 72
+  end
+  object Server_FDConnection: TFDConnection
+    Params.Strings = (
+      'DriverID=MySQL')
+    FetchOptions.AssignedValues = [evCursorKind]
+    FetchOptions.CursorKind = ckDefault
+    UpdateOptions.AssignedValues = [uvCountUpdatedRecords]
+    ConnectedStoredUsage = []
+    LoginPrompt = False
+    OnError = Server_FDConnectionError
+    BeforeConnect = Server_FDConnectionBeforeConnect
+    Left = 94
+    Top = 18
+  end
+  object FDStanStorageJSONLink1: TFDStanStorageJSONLink
+    Left = 277
+    Top = 55
+  end
+  object FDGUIxWaitCursor1: TFDGUIxWaitCursor
+    Provider = 'Forms'
+    Left = 278
+    Top = 11
+  end
+  object FDPhysMSSQLDriverLink1: TFDPhysMSSQLDriverLink
+    Left = 280
+    Top = 144
+  end
   object frxReport1: TfrxReport
-    Version = '6.7.5'
+    Version = '6.9.12'
     DotMatrixReport = False
     IniFile = '\Software\Fast Reports'
     PreviewOptions.Buttons = [pbPrint, pbLoad, pbSave, pbExport, pbZoom, pbFind, pbOutline, pbPageSetup, pbTools, pbEdit, pbNavigator, pbExportQuick]
@@ -40,6 +85,10 @@ object ServerRest: TServerRest
       MirrorMode = []
       object ReportTitle1: TfrxReportTitle
         FillType = ftBrush
+        FillGap.Top = 0
+        FillGap.Left = 0
+        FillGap.Bottom = 0
+        FillGap.Right = 0
         Frame.Typ = []
         Height = 26.456710000000000000
         Top = 18.897650000000000000
@@ -111,6 +160,7 @@ object ServerRest: TServerRest
     ShowProgress = True
     OverwritePrompt = False
     DataOnly = False
+    InteractiveFormsFontSubset = 'A-Z,a-z,0-9,#43-#47 '
     OpenAfterExport = False
     PrintOptimized = False
     Outline = False
@@ -138,6 +188,7 @@ object ServerRest: TServerRest
     Events = <
       item
         Routes = [crAll]
+        NeedAuthorization = True
         DWParams = <
           item
             TypeObject = toParam
@@ -148,56 +199,19 @@ object ServerRest: TServerRest
           end>
         JsonMode = jmDataware
         Name = 'DownloadFile'
+        EventName = 'DownloadFile'
+        OnlyPreDefinedParams = False
       end>
     ContextName = 'SE1'
     Left = 176
     Top = 137
   end
-  object RESTDWPoolerDB2: TRESTDWPoolerDB
-    RESTDriver = RESTDWDriverUNIDAC1
-    Compression = True
-    Encoding = esUtf8
-    StrsTrim = False
-    StrsEmpty2Null = False
-    StrsTrim2Len = True
-    Active = True
-    PoolerOffMessage = 'RESTPooler not active.'
-    ParamCreate = True
+  object FDPhysMySQLDriverLink1: TFDPhysMySQLDriverLink
     Left = 272
-    Top = 96
+    Top = 104
   end
-  object KoneksiDb: TUniConnection
-    ProviderName = 'PostgreSQL'
-    LoginPrompt = False
-    BeforeConnect = KoneksiDbBeforeConnect
-    Left = 400
-    Top = 64
-  end
-  object RESTDWDriverUNIDAC1: TRESTDWDriverUNIDAC
-    CommitRecords = 100
-    Connection = KoneksiDb
-    Left = 392
-    Top = 168
-  end
-  object InterBaseUniProvider1: TInterBaseUniProvider
-    Left = 368
-    Top = 224
-  end
-  object PostgreSQLUniProvider1: TPostgreSQLUniProvider
-    Left = 264
-    Top = 232
-  end
-  object MySQLUniProvider1: TMySQLUniProvider
-    Left = 248
+  object FDPhysPgDriverLink1: TFDPhysPgDriverLink
+    Left = 144
     Top = 192
-  end
-  object UniQuery1: TUniQuery
-    Connection = KoneksiDb
-    Left = 456
-    Top = 224
-  end
-  object SQLServerUniProvider1: TSQLServerUniProvider
-    Left = 448
-    Top = 144
   end
 end
