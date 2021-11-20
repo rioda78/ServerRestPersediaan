@@ -69,39 +69,17 @@ type
     Label18: TLabel;
     RESTServicePooler1: TRESTServicePooler;
     Tupdatelogs: TTimer;
-    paTopo: TPanel;
-    Image2: TImage;
-    paEspanhol: TPanel;
-    paIngles: TPanel;
     Panel1: TPanel;
     Panel2: TPanel;
     lSeguro: TLabel;
     ButtonStart: TButton;
     ButtonStop: TButton;
     cbPoolerState: TCheckBox;
-    labSistema: TLabel;
     Panel6: TPanel;
     Panel5: TPanel;
     Label6: TLabel;
-    Label10: TLabel;
-    Label17: TLabel;
-    Label15: TLabel;
-    Label16: TLabel;
     labSSL: TLabel;
-    eHostCertFile: TEdit;
-    eCertFile: TEdit;
-    ePrivKeyFile: TEdit;
-    ePrivKeyPass: TMaskEdit;
-    cbForceWelcome: TCheckBox;
-    cbUpdateLog: TCheckBox;
-    edPasswordDW: TEdit;
-    edPortaDW: TEdit;
-    edUserNameDW: TEdit;
     labConexao: TLabel;
-    Label1: TLabel;
-    Label2: TLabel;
-    Label3: TLabel;
-    Label7: TLabel;
     Panel7: TPanel;
     cbAdaptadores: TComboBox;
     cbDriver: TComboBox;
@@ -118,7 +96,13 @@ type
     labPorta: TLabel;
     labSenha: TLabel;
     labUsuario: TLabel;
-    labVersao: TLabel;
+    EdPrivKeyFile: TLabeledEdit;
+    EdPrivKeyPass: TLabeledEdit;
+    EdCertFile: TLabeledEdit;
+    EdHostCertFile: TLabeledEdit;
+    EdUsernameRest: TLabeledEdit;
+    EdPassRest: TLabeledEdit;
+    EdPortRest: TLabeledEdit;
     procedure FormCreate(Sender: TObject);
     procedure ApplicationEvents1Idle(Sender: TObject; var Done: Boolean);
     procedure ButtonStartClick(Sender: TObject);
@@ -134,9 +118,6 @@ type
     procedure TupdatelogsTimer(Sender: TObject);
     procedure CbDriverCloseUp(Sender: TObject);
     procedure CkUsaURLClick(Sender: TObject);
-    procedure Image3Click(Sender: TObject);
-    procedure Image4Click(Sender: TObject);
-    procedure Image5Click(Sender: TObject);
   Private
     { Private declarations }
     VLastRequest,
@@ -236,9 +217,9 @@ Begin
    EdPortaBD.Text          := Ini.ReadString('SettingDb', 'PortaBD',    '3050');
    EdUserNameBD.Text       := Ini.ReadString('SettingDb', 'UsuarioBD',  'SYSDBA');
    EdPasswordBD.Text       := Ini.ReadString('SettingDb', 'SenhaBD',    'masterkey');
-   EdPortaDW.Text          := Ini.ReadString('SettingDb', 'PortaDW',    '8082');
-   EdUserNameDW.Text       := Ini.ReadString('SettingDb', 'UsuarioDW',  'testserver');
-   EdPasswordDW.Text       := Ini.ReadString('SettingDb', 'SenhaDW',    'testserver');
+   EdPortRest.Text          := Ini.ReadString('SettingDb', 'PortaDW',    '8082');
+   EdUserNameRest.Text       := Ini.ReadString('SettingDb', 'UsuarioDW',  'testserver');
+   EdPassRest.Text       := Ini.ReadString('SettingDb', 'SenhaDW',    'testserver');
 
     EdBD.Text         := 'seubanco';
         EdPortaBD.Text    := '1433';
@@ -267,24 +248,8 @@ Begin
   ChangeStatusWindow;
 End;
 
-procedure TRestDWForm.Image3Click(Sender: TObject);
-begin
- Locale_Portugues( 'portugues' );
-end;
-
-procedure TRestDWForm.Image4Click(Sender: TObject);
-begin
- Locale_Portugues( 'espanhol' );
-end;
-
-procedure TRestDWForm.Image5Click(Sender: TObject);
-begin
- Locale_Portugues( 'ingles' );
-end;
-
 procedure TRestDWForm.Locale_Portugues(pLocale: String);
 begin
-
 end;
 
 procedure TRestDWForm.RestaurarAplicao1Click(Sender: TObject);
@@ -342,18 +307,18 @@ procedure TRestDWForm.ApplicationEvents1Idle(Sender: TObject; var Done: Boolean)
 Begin
   ButtonStart.Enabled   := Not RESTServicePooler1.Active;
   ButtonStop.Enabled    := RESTServicePooler1.Active;
-  EdPortaDW.Enabled     := ButtonStart.Enabled;
-  EdUserNameDW.Enabled  := ButtonStart.Enabled;
-  EdPasswordDW.Enabled  := ButtonStart.Enabled;
+  EdPortRest.Enabled     := ButtonStart.Enabled;
+  EdUserNameRest.Enabled  := ButtonStart.Enabled;
+  EdPassRest.Enabled  := ButtonStart.Enabled;
   CbAdaptadores.Enabled := ButtonStart.Enabled;
   EdPortaBD.Enabled     := ButtonStart.Enabled;
   EdBD.Enabled          := ButtonStart.Enabled;
   EdUserNameBD.Enabled  := ButtonStart.Enabled;
   EdPasswordBD.Enabled  := ButtonStart.Enabled;
   cbOsAuthent.Enabled   := ButtonStart.Enabled;
-  EPrivKeyFile.Enabled  := ButtonStart.Enabled;
-  EPrivKeyPass.Enabled  := ButtonStart.Enabled;
-  ECertFile.Enabled     := ButtonStart.Enabled;
+  EdPrivKeyFile.Enabled  := ButtonStart.Enabled;
+  EdPrivKeyPass.Enabled  := ButtonStart.Enabled;
+  EdCertFile.Enabled     := ButtonStart.Enabled;
 End;
 
 procedure TRestDWForm.ButtonStartClick(Sender: TObject);
@@ -379,29 +344,34 @@ Begin
    Ini.WriteInteger('SettingDb', 'USEDNS', 1)
   Else
    Ini.WriteInteger('SettingDb', 'USEDNS', 0);
+  {
   If cbUpdateLog.Checked Then
    Ini.WriteInteger('Configs', 'UPDLOG', 1)
   Else
    Ini.WriteInteger('Configs', 'UPDLOG', 0);
+   }
   Ini.WriteString('SettingDb', 'Database', EdBD.Text);
   Ini.WriteString('SettingDb', 'PortDb', EdPortaBD.Text);
-  Ini.WriteString('SettingDb', 'PortDW', EdPortaDW.Text);
+  Ini.WriteString('SettingDb', 'PortDW', EdPortRest.Text);
   Ini.WriteString('SettingDb', 'UserDb', EdUserNameBD.Text);
   Ini.WriteString('SettingDb', 'PassDb', EdPasswordBD.Text);
-  Ini.WriteString('SettingDb', 'UserDW', EdUserNameDW.Text);
-  Ini.WriteString('SettingDb', 'PassDW', EdPasswordDW.Text);
+  Ini.WriteString('SettingDb', 'UserDW', EdUserNameRest.Text);
+  Ini.WriteString('SettingDb', 'PassDW', EdPassRest.Text);
   Ini.WriteInteger('SettingDb', 'OsAuthent', cbOsAuthent.Checked.ToInteger);
-  Ini.WriteString('SSL', 'PKF', EPrivKeyFile.Text);
-  Ini.WriteString('SSL', 'PKP', EPrivKeyPass.Text);
-  Ini.WriteString('SSL', 'CF', ECertFile.Text);
-  Ini.WriteString('SSL', 'HostCF', eHostCertFile.Text);
+  Ini.WriteString('SSL', 'PKF', EdPrivKeyFile.Text);
+  Ini.WriteString('SSL', 'PKP', EdPrivKeyPass.Text);
+  Ini.WriteString('SSL', 'CF', EdCertFile.Text);
+  Ini.WriteString('SSL', 'HostCF', edHostCertFile.Text);
+  {
   If cbForceWelcome.Checked Then
    Ini.WriteInteger('Configs', 'ForceWelcomeAccess', 1)
   Else
    Ini.WriteInteger('Configs', 'ForceWelcomeAccess', 0);
+   }
+   Ini.WriteInteger('Configs', 'ForceWelcomeAccess', 1);
   Ini.Free;
-  VUsername := EdUserNameDW.Text;
-  VPassword := EdPasswordDW.Text;
+  VUsername := EdUserNameRest.Text;
+  VPassword := EdPassRest.Text;
   StartServer;
 End;
 
@@ -433,7 +403,7 @@ End;
 
 procedure TRestDWForm.FormCreate(Sender: TObject);
 Begin
-  labVersao.Caption := uDWConsts.DWVERSAO;
+ // labVersao.Caption := uDWConsts.DWVERSAO;
   FCfgName                             := StringReplace(ExtractFileName(ParamStr(0)), '.exe', '', [RfReplaceAll]);
   FCfgName                             := ExtractFilePath(ParamSTR(0)) + 'Config_' + FCfgName + '.ini';
 //  RESTServicePooler1.AddDataRoute('datadm',  TServerMethodDM);
@@ -450,7 +420,6 @@ var
   ANetInterfaceList: TNetworkInterfaceList;
 Begin
 //set english
-image5Click(sender);
  VTag := 0;
  If (GetNetworkInterfaces(ANetInterfaceList)) Then
   Begin
@@ -482,20 +451,20 @@ image5Click(sender);
  EdBD.Text                := Ini.ReadString('SettingDb',  'Database', 'EMPLOYEE.FDB');
 
  EdPortaBD.Text           := Ini.ReadString('SettingDb',  'PortDb', '3050');
- EdPortaDW.Text           := Ini.ReadString('SettingDb',  'PortDW', '8082');
+ EdPortRest.Text           := Ini.ReadString('SettingDb',  'PortDW', '8082');
  EdUserNameBD.Text        := Ini.ReadString('SettingDb',  'UserDb', 'SYSDBA');
  EdPasswordBD.Text        := Ini.ReadString('SettingDb',  'PassDb', 'masterkey');
- EdUserNameDW.Text        := Ini.ReadString('SettingDb',  'UserDW', 'testserver');
- EdPasswordDW.Text        := Ini.ReadString('SettingDb',  'PassDW', 'testserver');
+ EdUserNameRest.Text        := Ini.ReadString('SettingDb',  'UserDW', 'testserver');
+ EdPassRest.Text        := Ini.ReadString('SettingDb',  'PassDW', 'testserver');
  //EdMonitor.Text           := Ini.ReadString('SettingDb',  'MonitorBy', 'Remote');  // ICO Menezes
  //EdDataSource.Text        := Ini.ReadString('SettingDb',  'DataSource', 'SQL');
  cbOsAuthent.Checked      := Ini.ReadInteger('SettingDb', 'OsAuthent', 0) = 1;
- cbUpdateLog.Checked      := Ini.ReadInteger('Configs',    'UPDLOG', 1) = 1;
- EPrivKeyFile.Text        := Ini.ReadString('SSL',         'PKF', '');
- EPrivKeyPass.Text        := Ini.ReadString('SSL',         'PKP', '');
- ECertFile.Text           := Ini.ReadString('SSL',         'CF', '');
- eHostCertFile.Text       := Ini.ReadString('SSL',         'HostCF', '');
- cbForceWelcome.Checked   := Ini.ReadInteger('Configs',    'ForceWelcomeAccess', 0) = 1;
+ //cbUpdateLog.Checked      := Ini.ReadInteger('Configs',    'UPDLOG', 1) = 1;
+ EdPrivKeyFile.Text        := Ini.ReadString('SSL',         'PKF', '');
+ EdPrivKeyPass.Text        := Ini.ReadString('SSL',         'PKP', '');
+ EdCertFile.Text           := Ini.ReadString('SSL',         'CF', '');
+ edHostCertFile.Text       := Ini.ReadString('SSL',         'HostCF', '');
+ //cbForceWelcome.Checked   := Ini.ReadInteger('Configs',    'ForceWelcomeAccess', 0) = 1;
  Ini.Free;
 End;
 
@@ -504,22 +473,22 @@ Begin
  If Not RESTServicePooler1.Active Then
   Begin
    RESTServicePooler1.AuthenticationOptions.AuthorizationOption := rdwAOBasic;
-   TRDWAuthOptionBasic(RESTServicePooler1.AuthenticationOptions.OptionParams).Username := EdUserNameDW.Text;
-    TRDWAuthOptionBasic(RESTServicePooler1.AuthenticationOptions.OptionParams).Password := EdPasswordDW.Text;
+   TRDWAuthOptionBasic(RESTServicePooler1.AuthenticationOptions.OptionParams).Username := EdUserNameRest.Text;
+    TRDWAuthOptionBasic(RESTServicePooler1.AuthenticationOptions.OptionParams).Password := EdPassRest.Text;
 
 
-   RESTServicePooler1.ServicePort           := StrToInt(EdPortaDW.Text);
-   RESTServicePooler1.SSLPrivateKeyFile     := EPrivKeyFile.Text;
-   RESTServicePooler1.SSLPrivateKeyPassword := EPrivKeyPass.Text;
-   RESTServicePooler1.SSLCertFile           := ECertFile.Text;
-   RESTServicePooler1.SSLRootCertFile       := eHostCertFile.Text;
-   RESTServicePooler1.ForceWelcomeAccess    := cbForceWelcome.Checked;
+   RESTServicePooler1.ServicePort           := StrToInt(EdPortRest.Text);
+   RESTServicePooler1.SSLPrivateKeyFile     := EdPrivKeyFile.Text;
+   RESTServicePooler1.SSLPrivateKeyPassword := EdPrivKeyPass.Text;
+   RESTServicePooler1.SSLCertFile           := EdCertFile.Text;
+   RESTServicePooler1.SSLRootCertFile       := edHostCertFile.Text;
+   RESTServicePooler1.ForceWelcomeAccess    := true ;//cbForceWelcome.Checked;
    RESTServicePooler1.Active                := True;
    If Not RESTServicePooler1.Active Then
      Exit;
    PageControl1.ActivePage := TsLogs;
    HideApplication;
-   Tupdatelogs.Enabled := cbUpdateLog.Checked;
+   //Tupdatelogs.Enabled := cbUpdateLog.Checked;
   End;
  If RESTServicePooler1.Secure Then
   Begin
