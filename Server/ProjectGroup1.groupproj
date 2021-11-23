@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{51699548-E5A6-4C63-982F-BA3A9A005AB6}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="RestDWServer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="D:\Delphi\Komponen\Restdataware\Demos\SimpleServer\Server\RestDWServerProject.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="RestDWServer">
+        <MSBuild Projects="RestDWServer.dproj"/>
+    </Target>
+    <Target Name="RestDWServer:Clean">
+        <MSBuild Projects="RestDWServer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="RestDWServer:Make">
+        <MSBuild Projects="RestDWServer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="RestDWServerProject">
+        <MSBuild Projects="D:\Delphi\Komponen\Restdataware\Demos\SimpleServer\Server\RestDWServerProject.dproj"/>
+    </Target>
+    <Target Name="RestDWServerProject:Clean">
+        <MSBuild Projects="D:\Delphi\Komponen\Restdataware\Demos\SimpleServer\Server\RestDWServerProject.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="RestDWServerProject:Make">
+        <MSBuild Projects="D:\Delphi\Komponen\Restdataware\Demos\SimpleServer\Server\RestDWServerProject.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="RestDWServer;RestDWServerProject"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="RestDWServer:Clean;RestDWServerProject:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="RestDWServer:Make;RestDWServerProject:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

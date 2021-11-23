@@ -77,7 +77,6 @@ type
     cbPoolerState: TCheckBox;
     Panel6: TPanel;
     Panel5: TPanel;
-    Label6: TLabel;
     labSSL: TLabel;
     labConexao: TLabel;
     Panel7: TPanel;
@@ -100,9 +99,19 @@ type
     EdPrivKeyPass: TLabeledEdit;
     EdCertFile: TLabeledEdit;
     EdHostCertFile: TLabeledEdit;
-    EdUsernameRest: TLabeledEdit;
-    EdPassRest: TLabeledEdit;
     EdPortRest: TLabeledEdit;
+    pBasicAuth: TPanel;
+    EdUsernameRest: TLabeledEdit;
+    EdPasswordRest: TLabeledEdit;
+    pTokenAuth: TPanel;
+    Label12: TLabel;
+    cbTokenType: TComboBox;
+    EdServerSIgn: TLabeledEdit;
+    EdTokenEvent: TLabeledEdit;
+    EdLifeCycle: TLabeledEdit;
+    EdTokenHash: TLabeledEdit;
+    cbAuthOptions: TComboBox;
+    Label11: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure ApplicationEvents1Idle(Sender: TObject; var Done: Boolean);
     procedure ButtonStartClick(Sender: TObject);
@@ -118,6 +127,7 @@ type
     procedure TupdatelogsTimer(Sender: TObject);
     procedure CbDriverCloseUp(Sender: TObject);
     procedure CkUsaURLClick(Sender: TObject);
+    procedure cbAuthOptionsChange(Sender: TObject);
   Private
     { Private declarations }
     VLastRequest,
@@ -219,7 +229,7 @@ Begin
    EdPasswordBD.Text       := Ini.ReadString('SettingDb', 'SenhaBD',    'masterkey');
    EdPortRest.Text          := Ini.ReadString('SettingDb', 'PortaDW',    '8082');
    EdUserNameRest.Text       := Ini.ReadString('SettingDb', 'UsuarioDW',  'testserver');
-   EdPassRest.Text       := Ini.ReadString('SettingDb', 'SenhaDW',    'testserver');
+   EdPasswordRest.Text       := Ini.ReadString('SettingDb', 'SenhaDW',    'testserver');
 
     EdBD.Text         := 'seubanco';
         EdPortaBD.Text    := '1433';
@@ -309,7 +319,7 @@ Begin
   ButtonStop.Enabled    := RESTServicePooler1.Active;
   EdPortRest.Enabled     := ButtonStart.Enabled;
   EdUserNameRest.Enabled  := ButtonStart.Enabled;
-  EdPassRest.Enabled  := ButtonStart.Enabled;
+  EdPasswordRest.Enabled  := ButtonStart.Enabled;
   CbAdaptadores.Enabled := ButtonStart.Enabled;
   EdPortaBD.Enabled     := ButtonStart.Enabled;
   EdBD.Enabled          := ButtonStart.Enabled;
@@ -356,7 +366,7 @@ Begin
   Ini.WriteString('SettingDb', 'UserDb', EdUserNameBD.Text);
   Ini.WriteString('SettingDb', 'PassDb', EdPasswordBD.Text);
   Ini.WriteString('SettingDb', 'UserDW', EdUserNameRest.Text);
-  Ini.WriteString('SettingDb', 'PassDW', EdPassRest.Text);
+  Ini.WriteString('SettingDb', 'PassDW', EdPasswordRest.Text);
   Ini.WriteInteger('SettingDb', 'OsAuthent', cbOsAuthent.Checked.ToInteger);
   Ini.WriteString('SSL', 'PKF', EdPrivKeyFile.Text);
   Ini.WriteString('SSL', 'PKP', EdPrivKeyPass.Text);
@@ -371,7 +381,7 @@ Begin
    Ini.WriteInteger('Configs', 'ForceWelcomeAccess', 1);
   Ini.Free;
   VUsername := EdUserNameRest.Text;
-  VPassword := EdPassRest.Text;
+  VPassword := EdPasswordRest.Text;
   StartServer;
 End;
 
@@ -387,6 +397,12 @@ procedure TRestDWForm.CbAdaptadoresChange(Sender: TObject);
 Begin
   VDatabaseIP := Trim(Copy(CbAdaptadores.Text, Pos('-', CbAdaptadores.Text) + 1, 100));
 End;
+
+procedure TRestDWForm.cbAuthOptionsChange(Sender: TObject);
+begin
+ pTokenAuth.Visible := cbAuthOptions.ItemIndex > 1;
+ pBasicAuth.Visible := cbAuthOptions.ItemIndex = 1;
+end;
 
 procedure TRestDWForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 Begin
@@ -419,7 +435,8 @@ var
   VTag, I:           Integer;
   ANetInterfaceList: TNetworkInterfaceList;
 Begin
-//set english
+
+
  VTag := 0;
  If (GetNetworkInterfaces(ANetInterfaceList)) Then
   Begin
@@ -455,7 +472,7 @@ Begin
  EdUserNameBD.Text        := Ini.ReadString('SettingDb',  'UserDb', 'SYSDBA');
  EdPasswordBD.Text        := Ini.ReadString('SettingDb',  'PassDb', 'masterkey');
  EdUserNameRest.Text        := Ini.ReadString('SettingDb',  'UserDW', 'testserver');
- EdPassRest.Text        := Ini.ReadString('SettingDb',  'PassDW', 'testserver');
+ EdPasswordRest.Text        := Ini.ReadString('SettingDb',  'PassDW', 'testserver');
  //EdMonitor.Text           := Ini.ReadString('SettingDb',  'MonitorBy', 'Remote');  // ICO Menezes
  //EdDataSource.Text        := Ini.ReadString('SettingDb',  'DataSource', 'SQL');
  cbOsAuthent.Checked      := Ini.ReadInteger('SettingDb', 'OsAuthent', 0) = 1;
@@ -469,12 +486,84 @@ Begin
 End;
 
 procedure TRestDWForm.StartServer;
+Function GetAuthOption : TRDWAuthOption;
+ Begin
+  Case cbAuthOptions.ItemIndex Of
+   0 : Result := rdwAONone;
+   1 : Result := rdwAOBasic;
+   2 : Result := rdwAOBearer;
+   3 : Result := rdwAOToken;
+  End;
+ End;
+ Function GetTokenType : TRDWTokenType;
+ Begin
+  Case cbTokenType.ItemIndex Of
+   0 : Result := rdwTS;
+   1 : Result := rdwJWT;
+  End;
+ End;
 Begin
+ If Not RESTServicePooler1.Active Then
+  Begin
+   RESTServicePooler1.AuthenticationOptions.AuthorizationOption := GetAuthOption;
+   Case RESTServicePooler1.AuthenticationOptions.AuthorizationOption Of
+    rdwAOBasic : Begin
+                  TRDWAuthOptionBasic(RESTServicePooler1.AuthenticationOptions.OptionParams).Username := EdUserNameRest.Text;
+                  TRDWAuthOptionBasic(RESTServicePooler1.AuthenticationOptions.OptionParams).Password := EdPasswordRest.Text;
+                 End;
+    rdwAOBearer,
+    rdwAOToken : Begin
+                  If RESTServicePooler1.AuthenticationOptions.AuthorizationOption = rdwAOBearer Then
+                   Begin
+                    TRDWAuthOptionBearerServer(RESTServicePooler1.AuthenticationOptions.OptionParams).TokenType       := GetTokenType;
+                    TRDWAuthOptionBearerServer(RESTServicePooler1.AuthenticationOptions.OptionParams).GetTokenEvent   := EdTokenEvent.Text;
+                    //TRDWAuthOptionBearerServer(RESTServicePooler1.AuthenticationOptions.OptionParams).GetTokenRoutes  := [crPost];
+                    TRDWAuthOptionBearerServer(RESTServicePooler1.AuthenticationOptions.OptionParams).TokenHash       := edTokenHash.Text;
+                    TRDWAuthOptionBearerServer(RESTServicePooler1.AuthenticationOptions.OptionParams).ServerSignature := edServerSign.Text;
+                    TRDWAuthOptionBearerServer(RESTServicePooler1.AuthenticationOptions.OptionParams).LifeCycle       := StrToInt(edLifeCycle.Text);
+                   End
+                  Else
+                   Begin
+                    TRDWAuthOptionTokenServer(RESTServicePooler1.AuthenticationOptions.OptionParams).TokenType       := GetTokenType;
+                    TRDWAuthOptionTokenServer(RESTServicePooler1.AuthenticationOptions.OptionParams).GetTokenEvent   := edTokenEvent.Text;
+                    //TRDWAuthOptionTokenServer(RESTServicePooler1.AuthenticationOptions.OptionParams).GetTokenRoutes  := [crPost];
+                    TRDWAuthOptionTokenServer(RESTServicePooler1.AuthenticationOptions.OptionParams).TokenHash       := edTokenHash.Text;
+                    TRDWAuthOptionTokenServer(RESTServicePooler1.AuthenticationOptions.OptionParams).ServerSignature := edServerSign.Text;
+                    TRDWAuthOptionTokenServer(RESTServicePooler1.AuthenticationOptions.OptionParams).LifeCycle       := StrToInt(edLifeCycle.Text);
+                   End;
+                 End;
+    Else
+     RESTServicePooler1.AuthenticationOptions.AuthorizationOption := rdwAONone;
+   End;
+   RESTServicePooler1.ServicePort           := StrToInt(EdPortRest.Text);
+   RESTServicePooler1.SSLPrivateKeyFile     := EdPrivKeyFile.Text;
+   RESTServicePooler1.SSLPrivateKeyPassword := EdPrivKeyPass.Text;
+   RESTServicePooler1.SSLCertFile           := EdCertFile.Text;
+   RESTServicePooler1.SSLRootCertFile       := edHostCertFile.Text;
+  // RESTServicePooler1.ForceWelcomeAccess    := cbForceWelcome.Checked;
+   RESTServicePooler1.Active                := True;
+   If Not RESTServicePooler1.Active Then
+     Exit;
+   PageControl1.ActivePage := TsLogs;
+   HideApplication;
+   //Tupdatelogs.Enabled := cbUpdateLog.Checked;
+  End;
+ If RESTServicePooler1.Secure Then
+  Begin
+   LSeguro.Font.Color := ClBlue;
+   LSeguro.Caption    := 'Seguro : Sim';
+  End
+ Else
+  Begin
+   LSeguro.Font.Color := ClRed;
+   LSeguro.Caption    := 'Seguro : Não';
+  End;
+{
  If Not RESTServicePooler1.Active Then
   Begin
    RESTServicePooler1.AuthenticationOptions.AuthorizationOption := rdwAOBasic;
    TRDWAuthOptionBasic(RESTServicePooler1.AuthenticationOptions.OptionParams).Username := EdUserNameRest.Text;
-    TRDWAuthOptionBasic(RESTServicePooler1.AuthenticationOptions.OptionParams).Password := EdPassRest.Text;
+    TRDWAuthOptionBasic(RESTServicePooler1.AuthenticationOptions.OptionParams).Password := EdPasswordRest.Text;
 
 
    RESTServicePooler1.ServicePort           := StrToInt(EdPortRest.Text);
@@ -500,6 +589,8 @@ Begin
    LSeguro.Font.Color := ClRed;
    LSeguro.Caption    := 'Aman : Tidak';
   End;
+  }
+
 End;
 
 procedure TRestDWForm.TupdatelogsTimer(Sender: TObject);

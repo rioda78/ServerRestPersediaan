@@ -3,8 +3,8 @@ object RestDWForm: TRestDWForm
   Top = 114
   BorderStyle = bsSingle
   Caption = 'REST Server'
-  ClientHeight = 594
-  ClientWidth = 640
+  ClientHeight = 606
+  ClientWidth = 680
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -41,8 +41,8 @@ object RestDWForm: TRestDWForm
     AlignWithMargins = True
     Left = 4
     Top = 4
-    Width = 632
-    Height = 545
+    Width = 672
+    Height = 557
     Margins.Left = 4
     Margins.Top = 4
     Margins.Right = 4
@@ -56,16 +56,18 @@ object RestDWForm: TRestDWForm
     Font.Style = []
     ParentFont = False
     TabOrder = 0
-    ExplicitHeight = 623
+    ExplicitWidth = 632
+    ExplicitHeight = 545
     object tsConfigs: TTabSheet
       Caption = 'Configuration'
-      ExplicitHeight = 591
+      ExplicitWidth = 624
+      ExplicitHeight = 513
       object Panel1: TPanel
         AlignWithMargins = True
         Left = 4
         Top = 4
-        Width = 616
-        Height = 505
+        Width = 656
+        Height = 517
         Margins.Left = 4
         Margins.Top = 4
         Margins.Right = 4
@@ -74,19 +76,21 @@ object RestDWForm: TRestDWForm
         BevelOuter = bvNone
         ParentBackground = False
         TabOrder = 0
-        ExplicitHeight = 583
+        ExplicitWidth = 616
+        ExplicitHeight = 505
         object Panel6: TPanel
           Left = 0
           Top = 0
-          Width = 616
-          Height = 105
+          Width = 656
+          Height = 129
           Align = alTop
           TabOrder = 0
+          ExplicitTop = -2
           object labConexao: TLabel
             AlignWithMargins = True
             Left = 1
             Top = 4
-            Width = 614
+            Width = 654
             Height = 23
             Margins.Left = 0
             Margins.Right = 0
@@ -108,71 +112,171 @@ object RestDWForm: TRestDWForm
             ExplicitTop = 3
             ExplicitWidth = 615
           end
-          object EdUsernameRest: TLabeledEdit
-            Left = 344
-            Top = 55
-            Width = 121
-            Height = 25
-            EditLabel.Width = 88
-            EditLabel.Height = 17
-            EditLabel.Caption = 'Username Rest'
-            TabOrder = 0
-          end
-          object EdPassRest: TLabeledEdit
-            Left = 488
-            Top = 55
-            Width = 121
-            Height = 25
-            EditLabel.Width = 85
-            EditLabel.Height = 17
-            EditLabel.Caption = 'Password Rest'
-            TabOrder = 1
+          object Label11: TLabel
+            Left = 9
+            Top = 32
+            Width = 127
+            Height = 17
+            Caption = 'Authorization Options'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clWindowText
+            Font.Height = -13
+            Font.Name = 'Segoe UI'
+            Font.Style = []
+            ParentFont = False
           end
           object EdPortRest: TLabeledEdit
-            Left = 12
-            Top = 55
-            Width = 121
+            Left = 7
+            Top = 98
+            Width = 61
             Height = 25
             EditLabel.Width = 53
             EditLabel.Height = 17
             EditLabel.Caption = 'Port Rest'
+            TabOrder = 0
+            Text = '8082'
+          end
+          object pBasicAuth: TPanel
+            Left = 392
+            Top = 26
+            Width = 260
+            Height = 101
+            BevelOuter = bvNone
+            TabOrder = 1
+            Visible = False
+            object EdUsernameRest: TLabeledEdit
+              Left = 18
+              Top = 20
+              Width = 121
+              Height = 25
+              EditLabel.Width = 88
+              EditLabel.Height = 17
+              EditLabel.Caption = 'Username Rest'
+              TabOrder = 0
+            end
+            object EdPasswordRest: TLabeledEdit
+              Left = 18
+              Top = 66
+              Width = 121
+              Height = 25
+              EditLabel.Width = 85
+              EditLabel.Height = 17
+              EditLabel.Caption = 'Password Rest'
+              PasswordChar = '*'
+              TabOrder = 1
+            end
+          end
+          object pTokenAuth: TPanel
+            Left = 264
+            Top = 27
+            Width = 391
+            Height = 101
+            Align = alRight
+            BevelOuter = bvNone
             TabOrder = 2
+            Visible = False
+            object Label12: TLabel
+              Left = 0
+              Top = 2
+              Width = 65
+              Height = 17
+              Caption = 'Token Type'
+              Font.Charset = DEFAULT_CHARSET
+              Font.Color = clWindowText
+              Font.Height = -13
+              Font.Name = 'Segoe UI'
+              Font.Style = []
+              ParentFont = False
+            end
+            object cbTokenType: TComboBox
+              Left = 0
+              Top = 19
+              Width = 175
+              Height = 25
+              Style = csDropDownList
+              ItemIndex = 0
+              TabOrder = 0
+              Text = 'rdwTS'
+              Items.Strings = (
+                'rdwTS'
+                'rdwJWT')
+            end
+            object EdServerSIgn: TLabeledEdit
+              Left = 208
+              Top = 19
+              Width = 121
+              Height = 25
+              EditLabel.Width = 66
+              EditLabel.Height = 17
+              EditLabel.Caption = 'Server Sign'
+              TabOrder = 1
+              Text = 'RESTDWServer01'
+            end
+            object EdTokenEvent: TLabeledEdit
+              Left = 0
+              Top = 64
+              Width = 121
+              Height = 25
+              EditLabel.Width = 65
+              EditLabel.Height = 17
+              EditLabel.Caption = 'Token Even'
+              TabOrder = 2
+              Text = 'GetToken'
+            end
+            object EdLifeCycle: TLabeledEdit
+              Left = 127
+              Top = 64
+              Width = 50
+              Height = 25
+              EditLabel.Width = 54
+              EditLabel.Height = 17
+              EditLabel.Caption = 'Life Cycle'
+              TabOrder = 3
+              Text = '1800'
+            end
+            object EdTokenHash: TLabeledEdit
+              Left = 187
+              Top = 65
+              Width = 121
+              Height = 25
+              EditLabel.Width = 67
+              EditLabel.Height = 17
+              EditLabel.Caption = 'Token Hash'
+              TabOrder = 4
+              Text = 'testedehashrdw01'
+            end
+          end
+          object cbAuthOptions: TComboBox
+            Left = 9
+            Top = 51
+            Width = 175
+            Height = 25
+            Style = csDropDownList
+            ItemIndex = 0
+            TabOrder = 3
+            Text = 'rdwAONone'
+            OnChange = cbAuthOptionsChange
+            Items.Strings = (
+              'rdwAONone'
+              'rdwAOBasic'
+              'rdwAOBearer'
+              'rdwAOToken')
           end
         end
         object Panel5: TPanel
           Left = 0
-          Top = 294
-          Width = 616
-          Height = 211
+          Top = 330
+          Width = 656
+          Height = 187
           Align = alBottom
           TabOrder = 1
-          ExplicitTop = 334
-          object Label6: TLabel
-            AlignWithMargins = True
-            Left = 4
-            Top = 187
-            Width = 608
-            Height = 17
-            Margins.Bottom = 6
-            Align = alBottom
-            Alignment = taCenter
-            AutoSize = False
-            Caption = 'Tambahkan rule dalam firewall'
-            Font.Charset = DEFAULT_CHARSET
-            Font.Color = clMaroon
-            Font.Height = -13
-            Font.Name = 'Segoe UI'
-            Font.Style = [fsBold]
-            ParentFont = False
-            ExplicitLeft = 1
-            ExplicitTop = 526
-            ExplicitWidth = 610
-          end
+          ExplicitTop = 294
+          ExplicitWidth = 616
           object labSSL: TLabel
             AlignWithMargins = True
             Left = 4
             Top = 4
-            Width = 608
+            Width = 648
             Height = 23
             Margins.Bottom = 0
             Align = alTop
@@ -203,8 +307,8 @@ object RestDWForm: TRestDWForm
             TabOrder = 0
           end
           object EdPrivKeyPass: TLabeledEdit
-            Left = 474
-            Top = 48
+            Left = 176
+            Top = 44
             Width = 121
             Height = 25
             EditLabel.Width = 94
@@ -214,7 +318,7 @@ object RestDWForm: TRestDWForm
           end
           object EdCertFile: TLabeledEdit
             Left = 12
-            Top = 97
+            Top = 93
             Width = 469
             Height = 25
             EditLabel.Width = 79
@@ -224,7 +328,7 @@ object RestDWForm: TRestDWForm
           end
           object EdHostCertFile: TLabeledEdit
             Left = 12
-            Top = 145
+            Top = 141
             Width = 469
             Height = 25
             EditLabel.Width = 112
@@ -235,18 +339,19 @@ object RestDWForm: TRestDWForm
         end
         object Panel7: TPanel
           Left = 0
-          Top = 105
-          Width = 616
-          Height = 189
+          Top = 129
+          Width = 656
+          Height = 201
           Align = alClient
           TabOrder = 2
-          ExplicitTop = 103
-          ExplicitHeight = 229
+          ExplicitTop = 105
+          ExplicitWidth = 616
+          ExplicitHeight = 189
           object labDBConfig: TLabel
             AlignWithMargins = True
             Left = 4
             Top = 4
-            Width = 608
+            Width = 648
             Height = 23
             Margins.Bottom = 0
             Align = alTop
@@ -263,6 +368,7 @@ object RestDWForm: TRestDWForm
             Transparent = False
             Layout = tlCenter
             ExplicitTop = 6
+            ExplicitWidth = 608
           end
           object Label14: TLabel
             Left = 12
@@ -459,7 +565,8 @@ object RestDWForm: TRestDWForm
     object tsLogs: TTabSheet
       Caption = 'Logs'
       ImageIndex = 1
-      ExplicitHeight = 591
+      ExplicitWidth = 624
+      ExplicitHeight = 513
       object Label19: TLabel
         Left = 7
         Top = 262
@@ -511,8 +618,8 @@ object RestDWForm: TRestDWForm
   object Panel2: TPanel
     AlignWithMargins = True
     Left = 4
-    Top = 553
-    Width = 632
+    Top = 565
+    Width = 672
     Height = 37
     Margins.Left = 4
     Margins.Top = 0
@@ -522,12 +629,13 @@ object RestDWForm: TRestDWForm
     BevelOuter = bvNone
     ParentBackground = False
     TabOrder = 1
-    ExplicitTop = 631
+    ExplicitTop = 553
+    ExplicitWidth = 632
     DesignSize = (
-      632
+      672
       37)
     object lSeguro: TLabel
-      Left = 9
+      Left = 12
       Top = 12
       Width = 82
       Height = 17
@@ -539,9 +647,10 @@ object RestDWForm: TRestDWForm
       Font.Name = 'Segoe UI'
       Font.Style = [fsBold]
       ParentFont = False
+      ExplicitLeft = 9
     end
     object ButtonStart: TButton
-      Left = 409
+      Left = 438
       Top = 6
       Width = 100
       Height = 25
@@ -556,9 +665,10 @@ object RestDWForm: TRestDWForm
       ParentFont = False
       TabOrder = 0
       OnClick = ButtonStartClick
+      ExplicitLeft = 409
     end
     object ButtonStop: TButton
-      Left = 521
+      Left = 557
       Top = 6
       Width = 100
       Height = 25
@@ -573,9 +683,10 @@ object RestDWForm: TRestDWForm
       ParentFont = False
       TabOrder = 1
       OnClick = ButtonStopClick
+      ExplicitLeft = 521
     end
     object cbPoolerState: TCheckBox
-      Left = 184
+      Left = 199
       Top = 12
       Width = 115
       Height = 17
@@ -590,6 +701,7 @@ object RestDWForm: TRestDWForm
       ParentFont = False
       State = cbChecked
       TabOrder = 2
+      ExplicitLeft = 184
     end
   end
   object ApplicationEvents1: TApplicationEvents
@@ -659,8 +771,8 @@ object RestDWForm: TRestDWForm
     CriptOptions.Use = True
     CriptOptions.Key = 'RDWBASEKEY256'
     MultiCORE = True
-    Left = 306
-    Top = 70
+    Left = 218
+    Top = 78
   end
   object tupdatelogs: TTimer
     Enabled = False
